@@ -59,9 +59,7 @@ def get_daily_stock_data(symbol: str) -> StockData:
         latest_quote: dict = latest_data[latest_date]
 
         # Calculate additional metrics
-        prev_date: Optional[str] = None
-        for prev_date in takewhile(lambda date: date < latest_date, data['Time Series (Daily)'].keys()):
-            pass
+        prev_date: Optional[str] = max(filter(lambda date: date < latest_date, data['Time Series (Daily)'].keys()), default=None)
         if prev_date is None:
             raise StockDataError(Exception("No previous date"))
 
