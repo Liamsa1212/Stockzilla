@@ -1,8 +1,7 @@
 import re
 from data_fetch import get_daily_stock_data
-from config import ALPHA_VANTAGE_API_KEY
 
-def extract_stock_symbol(message):
+def extract_stock_symbol(message: str) -> str:
     # Use regular expressions to extract the stock symbol from the message
     match = re.match(r'!stock\s+(\w+)', message)
     if match:
@@ -11,12 +10,12 @@ def extract_stock_symbol(message):
         return None
 
 if __name__ == '__main__':
-    user_input = input('Enter your command: ')  # Get user input, e.g., "!stock NVDA"
+    user_input: str = input('Enter your command: ')  # Get user input, e.g., "!stock NVDA"
     
-    stock_symbol = extract_stock_symbol(user_input)
+    stock_symbol: str = extract_stock_symbol(user_input)
     
     if stock_symbol:
-        stock_data = get_daily_stock_data(stock_symbol)
+        stock_data: dict = get_daily_stock_data(stock_symbol)
         
         if 'error' in stock_data:
             print(f'Error: {stock_data["error"]}')
