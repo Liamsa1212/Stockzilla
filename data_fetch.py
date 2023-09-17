@@ -1,7 +1,21 @@
 import requests
 from config import ALPHA_VANTAGE_API_KEY
+from dataclasses import dataclass
 
-def get_daily_stock_data(symbol: str) -> dict:
+@dataclass
+class StockData:
+    symbol: str
+    date: str
+    open: str
+    close: str
+    volume: str
+    daily_change: str
+    daily_change_percentage: str
+    pe_ratio: str
+    target_price: str
+    bullish_bearish_recommendations: str
+
+def get_daily_stock_data(symbol: str) -> StockData:
     """
     Fetch daily stock data for a given symbol from the Alpha Vantage API.
 
@@ -9,20 +23,7 @@ def get_daily_stock_data(symbol: str) -> dict:
         symbol (str): The stock symbol (e.g., 'AAPL' for Apple Inc.).
 
     Returns:
-        dict: A dictionary containing stock data including open, close, volume, and additional metrics.
-            Example:
-            {
-                'symbol': 'AAPL',
-                'date': '2023-09-15',
-                'open': '150.6300',
-                'close': '150.0800',
-                'volume': '79815284',
-                'daily_change': '+0.4400',
-                'daily_change_percentage': '+0.29%',
-                'pe_ratio': '15.0',
-                'target_price': '200.0',
-                'bullish_bearish_recommendations': 'Bullish'
-            }
+        StockData: A data class containing stock data including open, close, volume, and additional metrics.
     """
     base_url: str = 'https://www.alphavantage.co/query'
     
@@ -56,17 +57,17 @@ def get_daily_stock_data(symbol: str) -> dict:
         target_price: str = '200.0'
         bullish_bearish_recommendations: str = 'Bullish'
         
-        return {
-            'symbol': symbol,
-            'date': latest_date,
-            'open': latest_quote['1. open'],
-            'close': latest_quote['4. close'],
-            'volume': latest_quote['5. volume'],
-            'daily_change': daily_change,
-            'daily_change_percentage': daily_change_percentage,
-            'pe_ratio': pe_ratio,
-            'target_price': target_price,
-            'bullish_bearish_recommendations': bullish_bearish_recommendations
-        }
+        return StockData(
+            symbol=symbol,
+            date=latest_date,
+            open=latest_quote['1. open'],
+            close=latest_quote['4. close'],
+            volume=latest_quote['5. volume'],
+            daily_change=daily_change,
+            daily_change_percentage=daily_change_percentage,
+            pe_ratio=pe_ratio,
+            target_price=target_price,
+            bullish_bearish_recommendations=bullish_bearish_recommendations
+        )
     except Exception as e:
         return {'error': str(e)}
