@@ -1,6 +1,8 @@
 import requests
 from config import ALPHA_VANTAGE_API_KEY
 from dataclasses import dataclass
+from itertools import takewhile
+
 
 @dataclass
 class StockData:
@@ -9,11 +11,18 @@ class StockData:
     open: str
     close: str
     volume: str
-    daily_change: str
-    daily_change_percentage: str
-    pe_ratio: str
-    target_price: str
+    daily_change: float
+    daily_change_percentage: float
+    pe_ratio: float
+    target_price: float
     bullish_bearish_recommendations: str
+
+
+class StockDataError(Exception):
+    def __init__(self, e: Exception):
+        self.e = e
+        super().__init__("Unable to get stock data: " + str(self.e))
+
 
 def get_daily_stock_data(symbol: str) -> StockData:
     """
@@ -24,39 +33,46 @@ def get_daily_stock_data(symbol: str) -> StockData:
 
     Returns:
         StockData: A data class containing stock data including open, close, volume, and additional metrics.
+
+    Raises:
+        StockDataError: if unable to fetch data or parse the fetched data
     """
     base_url: str = 'https://www.alphavantage.co/query'
-    
+
     # Specify the function (TIME_SERIES_DAILY for daily data)
     function: str = 'TIME_SERIES_DAILY'
-    
+
     # Ensure the symbol is in uppercase
     symbol: str = symbol.upper()
-    
+
     # Construct the API request URL
     url: str = f'{base_url}?function={function}&symbol={symbol}&apikey={ALPHA_VANTAGE_API_KEY}'
-    
+
     try:
         response = requests.get(url)
         data: dict = response.json()
-        
+
         # Extract the latest daily stock data
         latest_data: dict = data['Time Series (Daily)']
         latest_date: str = max(latest_data.keys())
         latest_quote: dict = latest_data[latest_date]
-        
+
         # Calculate additional metrics
-        prev_date: str = max(data['Time Series (Daily)'].keys(), key=lambda x: x < latest_date)
+        # https://stackoverflow.com/questions/2138873/cleanest-way-to-get-last-item-from-python-iterator#comment100656804_48232574
+        *_, prev_date = takewhile(lambda date: date < latest_date, data['Time Series (Daily)'].keys())
         prev_quote: dict = data['Time Series (Daily)'][prev_date]
 
-        daily_change: str = f'{float(latest_quote["4. close"]) - float(prev_quote["4. close"]):.4f}'
-        daily_change_percentage: str = f'{(float(daily_change) / float(prev_quote["4. close"])) * 100:.2f}%'
-        
+        # rounded to 4 digits
+        daily_change: float = round(float(latest_quote["4. close"]) - float(prev_quote["4. close"]), 4)
+
+        # rounded to 2 digits
+        daily_change_percentage: float = round((float(daily_change) / float(prev_quote["4. close"])) * 100, 2)
+
         # Placeholder values for additional metrics
-        pe_ratio: str = '15.0'
-        target_price: str = '200.0'
+        pe_ratio: float = 15.0
+        target_price: float = 200.0
         bullish_bearish_recommendations: str = 'Bullish'
-        
+
         return StockData(
             symbol=symbol,
             date=latest_date,
@@ -70,4 +86,4 @@ def get_daily_stock_data(symbol: str) -> StockData:
             bullish_bearish_recommendations=bullish_bearish_recommendations
         )
     except Exception as e:
-        return {'error': str(e)}
+        raise StockDataError(e)
