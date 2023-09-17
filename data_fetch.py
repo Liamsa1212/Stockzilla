@@ -2,6 +2,7 @@ import requests
 from config import ALPHA_VANTAGE_API_KEY
 from dataclasses import dataclass
 from itertools import takewhile
+from typing import Optional
 
 
 @dataclass
@@ -58,8 +59,12 @@ def get_daily_stock_data(symbol: str) -> StockData:
         latest_quote: dict = latest_data[latest_date]
 
         # Calculate additional metrics
-        # https://stackoverflow.com/questions/2138873/cleanest-way-to-get-last-item-from-python-iterator#comment100656804_48232574
-        *_, prev_date = takewhile(lambda date: date < latest_date, data['Time Series (Daily)'].keys())
+        prev_date: Optional[str] = None
+        for prev_date in takewhile(lambda date: date < latest_date, data['Time Series (Daily)'].keys()):
+            pass
+        if prev_date is None:
+            raise StockDataError(Exception("No previous date"))
+
         prev_quote: dict = data['Time Series (Daily)'][prev_date]
 
         # rounded to 4 digits
