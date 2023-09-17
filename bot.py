@@ -11,12 +11,12 @@ def extract_stock_symbol(message: str) -> str:
 
 if __name__ == '__main__':
     user_input: str = input('Enter your command: ')  # Get user input, e.g., "!stock NVDA"
-    
+
     stock_symbol: str = extract_stock_symbol(user_input)
-    
+
     if stock_symbol:
         stock_data: dict = get_daily_stock_data(stock_symbol)
-        
+
         if 'error' in stock_data:
             print(f'Error: {stock_data["error"]}')
         else:

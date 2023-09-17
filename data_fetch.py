@@ -26,37 +26,37 @@ def get_daily_stock_data(symbol: str) -> StockData:
         StockData: A data class containing stock data including open, close, volume, and additional metrics.
     """
     base_url: str = 'https://www.alphavantage.co/query'
-    
+
     # Specify the function (TIME_SERIES_DAILY for daily data)
     function: str = 'TIME_SERIES_DAILY'
-    
+
     # Ensure the symbol is in uppercase
     symbol: str = symbol.upper()
-    
+
     # Construct the API request URL
     url: str = f'{base_url}?function={function}&symbol={symbol}&apikey={ALPHA_VANTAGE_API_KEY}'
-    
+
     try:
         response = requests.get(url)
         data: dict = response.json()
-        
+
         # Extract the latest daily stock data
         latest_data: dict = data['Time Series (Daily)']
         latest_date: str = max(latest_data.keys())
         latest_quote: dict = latest_data[latest_date]
-        
+
         # Calculate additional metrics
         prev_date: str = max(data['Time Series (Daily)'].keys(), key=lambda x: x < latest_date)
         prev_quote: dict = data['Time Series (Daily)'][prev_date]
 
         daily_change: str = f'{float(latest_quote["4. close"]) - float(prev_quote["4. close"]):.4f}'
         daily_change_percentage: str = f'{(float(daily_change) / float(prev_quote["4. close"])) * 100:.2f}%'
-        
+
         # Placeholder values for additional metrics
         pe_ratio: str = '15.0'
         target_price: str = '200.0'
         bullish_bearish_recommendations: str = 'Bullish'
-        
+
         return StockData(
             symbol=symbol,
             date=latest_date,
